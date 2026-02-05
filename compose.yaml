@@ -1,0 +1,8 @@
+
+services:
+  builder:
+    container_name: nvim-rel
+    restart: no
+    build:
+      context: .
+      target: release
