@@ -1,8 +1,24 @@
 
 services:
   builder:
-    container_name: nvim-rel
+    container_name: nvim-builder
+    image: neovim-builder
     restart: no
     build:
-      context: .
+      target: builder
+  release:
+    container_name: nvim-release
+    image: neovim-release
+    restart: no
+    build:
       target: release
+      additional_contexts:
+        base: service:builder
+  debug:
+    container_name: nvim-debug
+    image: neovim-debug
+    restart: no
+    build:
+      target: debug
+      additional_contexts:
+        base: service:builder
