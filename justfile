@@ -70,3 +70,14 @@ install-debug: _check-debug _delete-installed
 docker-cleanup:
   docker image remove $(docker images --quiet neovim\*)
   docker image prune
+
+# Build tree-sitter for bookworm
+tree-sitter:
+  docker compose build tree-sitter
+  @ mkdir -p dist
+  docker run -it --rm --user "$(id -u):$(id -g)" -v $PWD/dist:/output neovim-tree-sitter \
+      cp -f /bin/tree-sitter /output/
+
+# Install tree-sitter
+install-tree-sitter: tree-sitter
+  sudo cp -p dist/tree-sitter /bin/

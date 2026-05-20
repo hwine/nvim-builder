@@ -6,6 +6,14 @@ services:
     restart: no
     build:
       target: builder
+  tree-sitter:
+    container_name: nvim-tree-sitter
+    image: neovim-tree-sitter
+    restart: no
+    build:
+      target: tree-sitter
+      additional_contexts:
+        base: service:builder
   release:
     container_name: nvim-release
     image: neovim-release

@@ -1,13 +1,30 @@
 ARG DEBIAN_VERSION=bookworm
 FROM debian:${DEBIAN_VERSION}-slim AS builder
-ARG BRANCH=stable
+ARG BRANCH=release-0.12
 
 # do as root - install all tooling
 
-RUN apt-get update
-RUN apt-get install -y git make cmake
-RUN git clone https://github.com/neovim/neovim
 WORKDIR /neovim
+RUN apt-get update ; apt-get install -y git make cmake ; git clone https://github.com/neovim/neovim
+
+# We need to override the mason installed tree-sitter, as it requires glibc 2.39, which bookworm does not have
+FROM builder AS tree-sitter-prep
+RUN \
+    apt install -y wget gcc-12 libclang1 libgcc-12-dev libstdc++-12-dev ; \
+    wget -O rustup.sh https://sh.rustup.rs ; \
+    bash rustup.sh -y ; echo "EC=$?" &>2 ; \
+    . ~/.cargo/env ; \
+    export CPATH=/usr/lib/gcc/aarch64-linux-gnu/12/include ; \
+    cargo install tree-sitter-cli ; \
+    :
+
+FROM tree-sitter-prep AS tree-sitter
+RUN \
+    ls -lR ~/.cargo/ ; \
+    cp ~/.cargo/bin/tree-sitter /bin
+#
+# Extract the binaries with:
+#   docker run -it --rm --user "$(id -u):$(id -g)" -v $PWD/dist:/output neovim-treesitter cp -f /bin/tree-sitter /output/
 
 FROM builder AS release
 RUN git checkout ${BRANCH} && make CMAKE_BUILD_TYPE=Release
