@@ -10,10 +10,24 @@ nvim-version:
 # Build release
 build-release:
   docker compose build release
+  @ mkdir -p dist
+  docker run -it --rm --user "$(id -u):$(id -g)" -v $PWD/dist:/output neovim-release \
+      cp -f /neovim/dist/nvim-rel.tgz /output/
+  @rm -rf dist/usr
+  @tar xzf dist/nvim-rel.tgz -C dist/
+  dist/usr/local/bin/nvim -V1 -v
+  @rm -rf dist/usr
 
 # Build debug
 build-debug:
   docker compose build debug
+  @ mkdir -p dist
+  docker run -it --rm --user "$(id -u):$(id -g)" -v $PWD/dist:/output neovim-debug \
+      cp -f /neovim/dist/nvim-dbg.tgz /output/
+  @rm -rf dist/usr
+  @tar xzf dist/nvim-dbg.tgz -C dist/
+  dist/usr/local/bin/nvim -V1 -v
+  @rm -rf dist/usr
 
 # Remove the current nvim
 _delete-installed: nvim-version
